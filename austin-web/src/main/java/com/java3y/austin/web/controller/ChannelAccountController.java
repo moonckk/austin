@@ -63,7 +63,7 @@ public class ChannelAccountController {
         creator = StrUtil.isBlank(creator) ? AustinConstant.DEFAULT_CREATOR : creator;
 
         List<ChannelAccount> channelAccounts = channelAccountService.queryByChannelType(channelType, creator);
-        return BasicResultVO.success(Convert4Amis.getChannelAccountVo(channelAccounts));
+        return BasicResultVO.success(Convert4Amis.getChannelAccountVo(channelAccounts));    //前端用的amis,需要转化成amis接收的视图对象
     }
 
     /**
@@ -77,6 +77,7 @@ public class ChannelAccountController {
         }
         creator = StrUtil.isBlank(creator) ? AustinConstant.DEFAULT_CREATOR : creator;
 
+        //列出创建者的所有渠道账号
         return BasicResultVO.success(channelAccountService.list(creator));
     }
 

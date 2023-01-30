@@ -17,6 +17,8 @@ public interface ChannelAccountDao extends JpaRepository<ChannelAccount, Long> {
     /**
      * 查询 列表
      *
+     * jpa根据方法名自动解析出sql,所以这个方法名特别长
+     *
      * @param deleted     0：未删除 1：删除
      * @param channelType 渠道值
      * @param creator     创建者

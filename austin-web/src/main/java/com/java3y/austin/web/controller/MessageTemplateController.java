@@ -83,12 +83,12 @@ public class MessageTemplateController {
      */
     @GetMapping("/list")
     @ApiOperation("/列表页")
-    public BasicResultVO queryList(@Validated MessageTemplateParam messageTemplateParam) {
+    public BasicResultVO queryList(@Validated MessageTemplateParam messageTemplateParam) {  //把筛选条件封装起来
         if (loginUtils.needLogin() && StrUtil.isBlank(messageTemplateParam.getCreator())) {
             return BasicResultVO.fail(RespStatusEnum.NO_LOGIN);
         }
         Page<MessageTemplate> messageTemplates = messageTemplateService.queryList(messageTemplateParam);
-        List<Map<String, Object>> result = Convert4Amis.flatListMap(messageTemplates.toList());
+        List<Map<String, Object>> result = Convert4Amis.flatListMap(messageTemplates.toList());     //转成amis需要的格式
         MessageTemplateVo messageTemplateVo = MessageTemplateVo.builder().count(messageTemplates.getTotalElements()).rows(result).build();
         return BasicResultVO.success(messageTemplateVo);
     }
@@ -132,14 +132,20 @@ public class MessageTemplateController {
 
     /**
      * 测试发送接口
+     *
+     * 重点分析这个核心流程
      */
     @PostMapping("test")
     @ApiOperation("/测试发送接口")
     public BasicResultVO test(@RequestBody MessageTemplateParam messageTemplateParam) {
-
+        //前端请求参数转换成Map
         Map<String, String> variables = JSON.parseObject(messageTemplateParam.getMsgContent(), Map.class);
+        //构建消息参数
         MessageParam messageParam = MessageParam.builder().receiver(messageTemplateParam.getReceiver()).variables(variables).build();
+        //构建发送消息的请求体(业务责任链编号+前端请求参数+消息参数),复杂的请求要用请求体对象封装
+        //BusinessCode.COMMON_SEND.getCode()  是不同业务的责任链编号
         SendRequest sendRequest = SendRequest.builder().code(BusinessCode.COMMON_SEND.getCode()).messageTemplateId(messageTemplateParam.getId()).messageParam(messageParam).build();
+        //发送消息,得到响应对象
         SendResponse response = sendService.send(sendRequest);
         if (response.getCode() != RespStatusEnum.SUCCESS.getCode()) {
             return BasicResultVO.fail(response.getMsg());
@@ -151,10 +157,10 @@ public class MessageTemplateController {
      * 获取需要测试的模板占位符，透出给Amis
      */
     @PostMapping("test/content")
-    @ApiOperation("/测试发送接口")
+    @ApiOperation("/获取需要测试的模板占位符")
     public BasicResultVO test(Long id) {
-        MessageTemplate messageTemplate = messageTemplateService.queryById(id);
-        CommonAmisVo commonAmisVo = Convert4Amis.getTestContent(messageTemplate.getMsgContent());
+        MessageTemplate messageTemplate = messageTemplateService.queryById(id); //根据id获取消息模版
+        CommonAmisVo commonAmisVo = Convert4Amis.getTestContent(messageTemplate.getMsgContent());  //获取消息模版内容(包含占位符)
         if (Objects.nonNull(commonAmisVo)) {
             return BasicResultVO.success(commonAmisVo);
         }
@@ -168,9 +174,10 @@ public class MessageTemplateController {
     @PostMapping("recall/{id}")
     @ApiOperation("/撤回消息接口")
     public BasicResultVO recall(@PathVariable("id") String id) {
-
+        //撤回业务也是一条责任链业务,业务代码是RECALL
         SendRequest sendRequest = SendRequest.builder().code(BusinessCode.RECALL.getCode()).
                 messageTemplateId(Long.valueOf(id)).build();
+        //发送撤回消息的请求得到响应对象
         SendResponse response = recallService.recall(sendRequest);
         if (response.getCode() != RespStatusEnum.SUCCESS.getCode()) {
             return BasicResultVO.fail(response.getMsg());
@@ -185,7 +192,7 @@ public class MessageTemplateController {
     @PostMapping("start/{id}")
     @ApiOperation("/启动模板的定时任务")
     public BasicResultVO start(@RequestBody @PathVariable("id") Long id) {
-        return messageTemplateService.startCronTask(id);
+        return messageTemplateService.startCronTask(id);    //开启xxl定时任务
     }
 
     /**
@@ -194,7 +201,7 @@ public class MessageTemplateController {
     @PostMapping("stop/{id}")
     @ApiOperation("/暂停模板的定时任务")
     public BasicResultVO stop(@RequestBody @PathVariable("id") Long id) {
-        return messageTemplateService.stopCronTask(id);
+        return messageTemplateService.stopCronTask(id);     //暂定xxl定时任务
     }
 
     /**

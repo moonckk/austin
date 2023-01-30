@@ -24,6 +24,7 @@ public class RecallServiceImpl implements RecallService {
 
     @Override
     public SendResponse recall(SendRequest sendRequest) {
+        //这里还是熟悉的责任链的味道
         SendTaskModel sendTaskModel = SendTaskModel.builder()
                 .messageTemplateId(sendRequest.getMessageTemplateId())
                 .build();

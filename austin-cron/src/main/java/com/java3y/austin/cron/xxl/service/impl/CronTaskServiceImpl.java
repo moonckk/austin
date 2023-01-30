@@ -70,7 +70,7 @@ public class CronTaskServiceImpl implements CronTaskService {
 
     @Override
     public BasicResultVO deleteCronTask(Integer taskId) {
-        String path = xxlAddresses + XxlJobConstant.DELETE_URL;
+        String path = xxlAddresses + XxlJobConstant.DELETE_URL;     //xxljob删除任务的请求接口
 
         HashMap<String, Object> params = MapUtil.newHashMap();
         params.put("id", taskId);
@@ -78,12 +78,13 @@ public class CronTaskServiceImpl implements CronTaskService {
         HttpResponse response;
         ReturnT returnT = null;
         try {
-            response = HttpRequest.post(path).form(params).cookie(getCookie()).execute();
-            returnT = JSON.parseObject(response.body(), ReturnT.class);
-            if (response.isOk() && ReturnT.SUCCESS_CODE == returnT.getCode()) {
+            response = HttpRequest.post(path).form(params).cookie(getCookie()).execute();   //用hutool工具发起删除xxljob的请求
+            returnT = JSON.parseObject(response.body(), ReturnT.class);     //转换hutool响应体到xxljob的原生响应体
+            if (response.isOk() && ReturnT.SUCCESS_CODE == returnT.getCode()) { //删除任务成功
                 return BasicResultVO.success();
             }
         } catch (Exception e) {
+            //学习这种打日志的写法,能够很好地排查问题
             log.error("CronTaskService#deleteCronTask fail,e:{},param:{},response:{}", Throwables.getStackTraceAsString(e)
                     , JSON.toJSONString(params), JSON.toJSONString(returnT));
         }

@@ -49,21 +49,22 @@ public class MessageTemplateServiceImpl implements MessageTemplateService {
 
     @Override
     public Page<MessageTemplate> queryList(MessageTemplateParam param) {
-        PageRequest pageRequest = PageRequest.of(param.getPage() - 1, param.getPerPage());
-        String creator = StrUtil.isBlank(param.getCreator()) ? AustinConstant.DEFAULT_CREATOR : param.getCreator();
-        return messageTemplateDao.findAll((Specification<MessageTemplate>) (root, query, cb) -> {
+        PageRequest pageRequest = PageRequest.of(param.getPage() - 1, param.getPerPage());  //页码,每页条数
+        String creator = StrUtil.isBlank(param.getCreator()) ? AustinConstant.DEFAULT_CREATOR : param.getCreator(); //创建者
+        //Page<T> findAll(@Nullable Specification<T> spec, Pageable pageable);
+        return messageTemplateDao.findAll((Specification<MessageTemplate>) (root, query, cb) -> {   //自己实现findAll
             List<Predicate> predicateList = new ArrayList<>();
             // 加搜索条件
-            if (StrUtil.isNotBlank(param.getKeywords())) {
+            if (StrUtil.isNotBlank(param.getKeywords())) {  //模版名称,支持模糊搜索
                 predicateList.add(cb.like(root.get("name").as(String.class), "%" + param.getKeywords() + "%"));
             }
-            predicateList.add(cb.equal(root.get("isDeleted").as(Integer.class), CommonConstant.FALSE));
-            predicateList.add(cb.equal(root.get("creator").as(String.class), creator));
-            Predicate[] p = new Predicate[predicateList.size()];
+            predicateList.add(cb.equal(root.get("isDeleted").as(Integer.class), CommonConstant.FALSE)); //未删除
+            predicateList.add(cb.equal(root.get("creator").as(String.class), creator)); //创建者
+            Predicate[] p = new Predicate[predicateList.size()];    //集合需要转成数组,下文用的是Predicate数组
             // 查询
-            query.where(cb.and(predicateList.toArray(p)));
+            query.where(cb.and(predicateList.toArray(p)));  //cb.and(Predicate数组) Predicate and(Predicate... var1);
             // 排序
-            query.orderBy(cb.desc(root.get("updated")));
+            query.orderBy(cb.desc(root.get("updated")));    //根据更新时间倒排
             return query.getRestriction();
         }, pageRequest);
     }
@@ -88,9 +89,11 @@ public class MessageTemplateServiceImpl implements MessageTemplateService {
 
     @Override
     public void deleteByIds(List<Long> ids) {
+        //软删除,修改is_delete=1表示删除
         Iterable<MessageTemplate> messageTemplates = messageTemplateDao.findAllById(ids);
         messageTemplates.forEach(messageTemplate -> messageTemplate.setIsDeleted(CommonConstant.TRUE));
         for (MessageTemplate messageTemplate : messageTemplates) {
+            //定时任务存在时,要先删除定时任务
             if (Objects.nonNull(messageTemplate.getCronTaskId()) && messageTemplate.getCronTaskId() > 0) {
                 cronTaskService.deleteCronTask(messageTemplate.getCronTaskId());
             }
@@ -105,8 +108,8 @@ public class MessageTemplateServiceImpl implements MessageTemplateService {
 
     @Override
     public void copy(Long id) {
-        MessageTemplate messageTemplate = messageTemplateDao.findById(id).get();
-        MessageTemplate clone = ObjectUtil.clone(messageTemplate).setId(null).setCronTaskId(null);
+        MessageTemplate messageTemplate = messageTemplateDao.findById(id).get();    //先通过id找到消息模版对象
+        MessageTemplate clone = ObjectUtil.clone(messageTemplate).setId(null).setCronTaskId(null);  //原型模式,浅拷贝
         messageTemplateDao.save(clone);
     }
 

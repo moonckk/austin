@@ -31,15 +31,16 @@ public class ChannelAccountServiceImpl implements ChannelAccountService {
             channelAccount.setCreated(Math.toIntExact(DateUtil.currentSeconds()));
             channelAccount.setIsDeleted(CommonConstant.FALSE);
         }
-        channelAccount.setCreator(StrUtil.isBlank(channelAccount.getCreator()) ? AustinConstant.DEFAULT_CREATOR : channelAccount.getCreator());
+        channelAccount.setCreator(StrUtil.isBlank(channelAccount.getCreator()) ? AustinConstant.DEFAULT_CREATOR : channelAccount.getCreator());     //创建者为空时,使用默认创建者
         channelAccount.setUpdated(Math.toIntExact(DateUtil.currentSeconds()));
-        ChannelAccount result = channelAccountDao.save(channelAccount);
-        wxServiceUtils.fresh();
+        ChannelAccount result = channelAccountDao.save(channelAccount);     //jpa内置save方法
+        wxServiceUtils.fresh();     //渠道账号增加时,刷新Map
         return result;
     }
 
     @Override
     public List<ChannelAccount> queryByChannelType(Integer channelType, String creator) {
+        //查询指定创建者,指定消息渠道渠道,且没有删除的渠道账号列表
         return channelAccountDao.findAllByIsDeletedEqualsAndCreatorEqualsAndSendChannelEquals(CommonConstant.FALSE, creator, channelType);
     }
 
@@ -50,6 +51,6 @@ public class ChannelAccountServiceImpl implements ChannelAccountService {
 
     @Override
     public void deleteByIds(List<Long> ids) {
-        channelAccountDao.deleteAllById(ids);
+        channelAccountDao.deleteAllById(ids);   //jpa根据id删除
     }
 }

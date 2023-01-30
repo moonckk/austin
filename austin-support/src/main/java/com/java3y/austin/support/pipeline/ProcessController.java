@@ -40,7 +40,7 @@ public class ProcessController {
          * 前置检查
          */
         try {
-            preCheck(context);
+            preCheck(context);  //责任链前置检查,此处主要检查了责任链上下文对象是否合法
         } catch (ProcessException e) {
             return e.getProcessContext();
         }
@@ -48,14 +48,17 @@ public class ProcessController {
         /**
          * 遍历流程节点
          */
+        //获取执行责任链所需的处理器,这些处理都实现同一个业务接口(多态)
+        //这些处理器在configuration中已经注册完成了,Map形式: K-业务编号   V-处理器集合List
+        //其实这个不是经典的责任链,做出了改造,用List代替了单链表
         List<BusinessProcess> processList = templateConfig.get(context.getCode()).getProcessList();
-        for (BusinessProcess businessProcess : processList) {
+        for (BusinessProcess businessProcess : processList) {   //按照顺序依次执行责任链的
             businessProcess.process(context);
-            if (context.getNeedBreak()) {
+            if (context.getNeedBreak()) {   //如果needBreak=true,说明执行过程中遇到了中断,需要结束责任链的执行
                 break;
             }
         }
-        return context;
+        return context; //责任链不论执行到哪个处理器(哪一步),都需要返回上下文对象
     }
 
 

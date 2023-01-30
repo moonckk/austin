@@ -19,6 +19,6 @@ public class HealthController {
     @GetMapping("/")
     @ApiOperation("/健康检测")
     public String health() {
-        return "success";
+        return "success";       //访问根路径返回健康提示
     }
 }
