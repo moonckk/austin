@@ -109,28 +109,36 @@ public class MessageTemplateServiceImpl implements MessageTemplateService {
     @Override
     public void copy(Long id) {
         MessageTemplate messageTemplate = messageTemplateDao.findById(id).get();    //先通过id找到消息模版对象
-        MessageTemplate clone = ObjectUtil.clone(messageTemplate).setId(null).setCronTaskId(null);  //原型模式,浅拷贝
+        MessageTemplate clone = ObjectUtil.clone(messageTemplate).setId(null).setCronTaskId(null);  //原型模式,克隆对象
         messageTemplateDao.save(clone);
     }
 
     @Override
     public BasicResultVO startCronTask(Long id) {
         // 1.获取消息模板的信息
-        MessageTemplate messageTemplate = messageTemplateDao.findById(id).get();
+        MessageTemplate messageTemplate = messageTemplateDao.findById(id).get();        //根据id获取消息模版
 
         // 2.动态创建或更新定时任务
+        //如果消息模版中设置了定时任务,cronTaskId !=null,更新,复用原有的任务
+        //如果cronTaskId ==null,需要创建
         XxlJobInfo xxlJobInfo = xxlJobUtils.buildXxlJobInfo(messageTemplate);
 
         // 3.获取taskId(如果本身存在则复用原有任务，如果不存在则得到新建后任务ID)
         Integer taskId = messageTemplate.getCronTaskId();
-        BasicResultVO basicResultVO = cronTaskService.saveCronTask(xxlJobInfo);
+        BasicResultVO basicResultVO = cronTaskService.saveCronTask(xxlJobInfo);   //保存定时任务
+        //如果原来没有定时任务,则获取保存完定时任务后的cronTaskId
         if (Objects.isNull(taskId) && RespStatusEnum.SUCCESS.getCode().equals(basicResultVO.getStatus()) && Objects.nonNull(basicResultVO.getData())) {
             taskId = Integer.valueOf(String.valueOf(basicResultVO.getData()));
         }
 
         // 4. 启动定时任务
+        //复用之前的任务, 或者创建了新的定时任务
         if (Objects.nonNull(taskId)) {
-            cronTaskService.startCronTask(taskId);
+            cronTaskService.startCronTask(taskId);  //启动定时任务
+            //原型模型,克隆消息对象,更新这个消息对象
+            //消息状态, RUN(30, "启用")
+            //定时任务,cronTaskId
+            //更新时间
             MessageTemplate clone = ObjectUtil.clone(messageTemplate).setMsgStatus(MessageStatus.RUN.getCode()).setCronTaskId(taskId).setUpdated(Math.toIntExact(DateUtil.currentSeconds()));
             messageTemplateDao.save(clone);
             return BasicResultVO.success();
@@ -142,6 +150,9 @@ public class MessageTemplateServiceImpl implements MessageTemplateService {
     public BasicResultVO stopCronTask(Long id) {
         // 1.修改模板状态
         MessageTemplate messageTemplate = messageTemplateDao.findById(id).get();
+        //对消息模版的修改都不在原始对象上修改,而是在克隆对象上修改
+        //消息状态, STOP(20, "停用")
+        //更新停止时间
         MessageTemplate clone = ObjectUtil.clone(messageTemplate).setMsgStatus(MessageStatus.STOP.getCode()).setUpdated(Math.toIntExact(DateUtil.currentSeconds()));
         messageTemplateDao.save(clone);
 

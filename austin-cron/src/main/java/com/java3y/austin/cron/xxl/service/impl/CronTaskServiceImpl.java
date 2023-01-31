@@ -42,22 +42,26 @@ public class CronTaskServiceImpl implements CronTaskService {
 
     @Override
     public BasicResultVO saveCronTask(XxlJobInfo xxlJobInfo) {
+        //用fastjson转换对象时,不使用JSONObject,而是使用Map<>
         Map<String, Object> params = JSON.parseObject(JSON.toJSONString(xxlJobInfo), Map.class);
+
+        //拼接xxl服务地址,根据xxl信息对象是否有cronTaskId,来决定创建 INSERT_URL = "/jobinfo/add"  或者更新 UPDATE_URL = "/jobinfo/update"
         String path = Objects.isNull(xxlJobInfo.getId()) ? xxlAddresses + XxlJobConstant.INSERT_URL
                 : xxlAddresses + XxlJobConstant.UPDATE_URL;
 
+        //使用hutool请求响应的流程
         HttpResponse response;
-        ReturnT returnT = null;
+        ReturnT returnT = null;     //xxl的原生响应值, 被hutool响应包装
         try {
-            response = HttpRequest.post(path).form(params).cookie(getCookie()).execute();
+            response = HttpRequest.post(path).form(params).cookie(getCookie()).execute();   //向xxl服务器发起保存定时任务的请求
             returnT = JSON.parseObject(response.body(), ReturnT.class);
 
             // 插入时需要返回Id，而更新时不需要
             if (response.isOk() && ReturnT.SUCCESS_CODE == returnT.getCode()) {
-                if (path.contains(XxlJobConstant.INSERT_URL)) {
+                if (path.contains(XxlJobConstant.INSERT_URL)) {     //插入返回Id
                     Integer taskId = Integer.parseInt(String.valueOf(returnT.getContent()));
                     return BasicResultVO.success(taskId);
-                } else if (path.contains(XxlJobConstant.UPDATE_URL)) {
+                } else if (path.contains(XxlJobConstant.UPDATE_URL)) {  //保存
                     return BasicResultVO.success();
                 }
             }
@@ -93,10 +97,10 @@ public class CronTaskServiceImpl implements CronTaskService {
 
     @Override
     public BasicResultVO startCronTask(Integer taskId) {
-        String path = xxlAddresses + XxlJobConstant.RUN_URL;
+        String path = xxlAddresses + XxlJobConstant.RUN_URL;    //xxl启动定时任务的url
 
-        HashMap<String, Object> params = MapUtil.newHashMap();
-        params.put("id", taskId);
+        HashMap<String, Object> params = MapUtil.newHashMap();  //请求参数
+        params.put("id", taskId);   //定时任务id
 
         HttpResponse response;
         ReturnT returnT = null;
@@ -115,9 +119,9 @@ public class CronTaskServiceImpl implements CronTaskService {
 
     @Override
     public BasicResultVO stopCronTask(Integer taskId) {
-        String path = xxlAddresses + XxlJobConstant.STOP_URL;
+        String path = xxlAddresses + XxlJobConstant.STOP_URL;   //xxl停止定时任务的url
 
-        HashMap<String, Object> params = MapUtil.newHashMap();
+        HashMap<String, Object> params = MapUtil.newHashMap();  //请求参数
         params.put("id", taskId);
 
         HttpResponse response;
@@ -187,14 +191,14 @@ public class CronTaskServiceImpl implements CronTaskService {
         Map<String, Object> params = MapUtil.newHashMap();
         params.put("userName", xxlUserName);
         params.put("password", xxlPassword);
-        params.put("randomCode", IdUtil.fastSimpleUUID());
+        params.put("randomCode", IdUtil.fastSimpleUUID());  //hutool快速产生uuid,不是安全的
 
-        String path = xxlAddresses + XxlJobConstant.LOGIN_URL;
+        String path = xxlAddresses + XxlJobConstant.LOGIN_URL;  //构建xxl请求url,用于登陆xxl服务器,登陆成功才能获取cookie
         HttpResponse response = null;
         try {
-            response = HttpRequest.post(path).form(params).execute();
+            response = HttpRequest.post(path).form(params).execute();   //执行请求
             if (response.isOk()) {
-                List<HttpCookie> cookies = response.getCookies();
+                List<HttpCookie> cookies = response.getCookies();   //cookie比较长,分段了,需要拼接
                 StringBuilder sb = new StringBuilder();
                 for (HttpCookie cookie : cookies) {
                     sb.append(cookie.toString());
