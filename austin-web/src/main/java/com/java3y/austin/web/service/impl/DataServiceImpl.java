@@ -55,11 +55,14 @@ public class DataServiceImpl implements DataService {
         }
 
         // 0. 按时间排序
+        //反序列化成买埋点对象SimpleAnchorInfo, 然后再根据时间timestamp排序
         List<SimpleAnchorInfo> sortAnchorList = userInfoList.stream().map(s -> JSON.parseObject(s, SimpleAnchorInfo.class)).sorted((o1, o2) -> Math.toIntExact(o1.getTimestamp() - o2.getTimestamp())).collect(Collectors.toList());
 
         // 1. 对相同的businessId进行分类  {"businessId":[{businessId,state,timeStamp},{businessId,state,timeStamp}]}
+        //也可以使用stream流聚合
         Map<String, List<SimpleAnchorInfo>> map = MapUtil.newHashMap();
         for (SimpleAnchorInfo simpleAnchorInfo : sortAnchorList) {
+            //获取当前埋点对象的所属业务集合
             List<SimpleAnchorInfo> simpleAnchorInfos = map.get(String.valueOf(simpleAnchorInfo.getBusinessId()));
             if (CollUtil.isEmpty(simpleAnchorInfos)) {
                 simpleAnchorInfos = new ArrayList<>();
@@ -70,17 +73,22 @@ public class DataServiceImpl implements DataService {
 
         // 2. 封装vo 给到前端渲染展示
         List<UserTimeLineVo.ItemsVO> items = new ArrayList<>();
+        //处理每个业务的集合
         for (Map.Entry<String, List<SimpleAnchorInfo>> entry : map.entrySet()) {
+            //根据业务id获得消息模板id
+            //第二到8位为MessageTemplateId 切割出模板ID
             Long messageTemplateId = TaskInfoUtils.getMessageTemplateIdFromBusinessId(Long.valueOf(entry.getKey()));
-            MessageTemplate messageTemplate = messageTemplateDao.findById(messageTemplateId).get();
+            MessageTemplate messageTemplate = messageTemplateDao.findById(messageTemplateId).get();     //id获取消息模版对象
 
             StringBuilder sb = new StringBuilder();
-            for (SimpleAnchorInfo simpleAnchorInfo : entry.getValue()) {
-                if (AnchorState.RECEIVE.getCode().equals(simpleAnchorInfo.getState())) {
-                    sb.append(StrPool.CRLF);
+            for (SimpleAnchorInfo simpleAnchorInfo : entry.getValue()) {    //当前业务id的埋点集合
+                if (AnchorState.RECEIVE.getCode().equals(simpleAnchorInfo.getState())) {   //消息接收成功（获取到请求）
+                    sb.append(StrPool.CRLF);  //htool  \r\n
                 }
+                //hutool 格式化埋点的时间格式
                 String startTime = DateUtil.format(new Date(simpleAnchorInfo.getTimestamp()), DatePattern.NORM_DATETIME_PATTERN);
-                String stateDescription = AnchorState.getDescriptionByCode(simpleAnchorInfo.getState());
+                String stateDescription = AnchorState.getDescriptionByCode(simpleAnchorInfo.getState());    //获取打点的描述
+                // 打点时间:打点描述==>
                 sb.append(startTime).append(StrPool.C_COLON).append(stateDescription).append("==>");
             }
 
@@ -115,17 +123,19 @@ public class DataServiceImpl implements DataService {
          * key：state
          * value:stateCount
          */
-        Map<Object, Object> anchorResult = redisUtils.hGetAll(getRealBusinessId(businessId));
+        Map<Object, Object> anchorResult = redisUtils.hGetAll(getRealBusinessId(businessId));   //todo 谁往redis中存?
 
         return Convert4Amis.getEchartsVo(anchorResult, optional.get().getName(), businessId);
     }
 
     @Override
     public SmsTimeLineVo getTraceSmsInfo(DataParam dataParam) {
-
+        //hutool  发送日期
         Integer sendDate = Integer.valueOf(DateUtil.format(new Date(dataParam.getDateTime() * 1000L), DatePattern.PURE_DATE_PATTERN));
+        //根据手机号和发送日期
         List<SmsRecord> smsRecordList = smsRecordDao.findByPhoneAndSendDate(Long.valueOf(dataParam.getReceiver()), sendDate);
         if (CollUtil.isEmpty(smsRecordList)) {
+            //没有发送记录,返回空值
             return SmsTimeLineVo.builder().items(Arrays.asList(SmsTimeLineVo.ItemsVO.builder().build())).build();
         }
 
@@ -139,9 +149,10 @@ public class DataServiceImpl implements DataService {
      * 判断是否为businessId则判断长度是否为16位（businessId长度固定16)
      */
     private String getRealBusinessId(String businessId) {
-        if (AustinConstant.BUSINESS_ID_LENGTH == businessId.length()) {
+        if (AustinConstant.BUSINESS_ID_LENGTH == businessId.length()) {     //16位直接返回
             return businessId;
         }
+        //如果传入的是模板ID,则查出来模板对象,并用模板对象的id和模板类型生成businessId
         Optional<MessageTemplate> optional = messageTemplateDao.findById(Long.valueOf(businessId));
         if (optional.isPresent()) {
             MessageTemplate messageTemplate = optional.get();

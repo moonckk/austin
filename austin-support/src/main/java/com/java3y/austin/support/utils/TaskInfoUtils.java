@@ -22,7 +22,7 @@ public class TaskInfoUtils {
      * (固定16位)
      */
     public static Long generateBusinessId(Long templateId, Integer templateType) {
-        Integer today = Integer.valueOf(DateUtil.format(new Date(), DatePattern.PURE_DATE_PATTERN));
+        Integer today = Integer.valueOf(DateUtil.format(new Date(), DatePattern.PURE_DATE_PATTERN));    //今天的数值型
         return Long.valueOf(String.format("%d%s", templateType * TYPE_FLAG + templateId, today));
     }
 

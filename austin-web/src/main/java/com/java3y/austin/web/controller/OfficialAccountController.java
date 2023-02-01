@@ -46,13 +46,13 @@ import java.util.*;
 public class OfficialAccountController {
 
     @Autowired
-    private WxServiceUtils wxServiceUtils;
+    private WxServiceUtils wxServiceUtils;      //和微信业务相关的工具类
 
     @Autowired
-    private LoginUtils loginUtils;
+    private LoginUtils loginUtils;      //和登陆相关的工具类
 
     @Autowired
-    private StringRedisTemplate redisTemplate;
+    private StringRedisTemplate redisTemplate;      //redis客户端
 
     /**
      * @param id 账号Id
@@ -63,13 +63,15 @@ public class OfficialAccountController {
     public BasicResultVO queryList(Long id) {
         try {
             List<CommonAmisVo> result = new ArrayList<>();
+            //微信服务号业务对象也是从Map中取得
             WxMpService wxMpService = wxServiceUtils.getOfficialAccountServiceMap().get(id);
 
+            //微信业务对象,获取模板消息服务对象,获取所有私有的模板
             List<WxMpTemplate> allPrivateTemplate = wxMpService.getTemplateMsgService().getAllPrivateTemplate();
-            for (WxMpTemplate wxMpTemplate : allPrivateTemplate) {
-                CommonAmisVo commonAmisVo = CommonAmisVo.builder().label(wxMpTemplate.getTitle()).value(wxMpTemplate.getTemplateId()).build();
-                result.add(commonAmisVo);
-            }
+                for (WxMpTemplate wxMpTemplate : allPrivateTemplate) {  //封装这些模板到amis,适配前端
+                    CommonAmisVo commonAmisVo = CommonAmisVo.builder().label(wxMpTemplate.getTitle()).value(wxMpTemplate.getTemplateId()).build();
+                    result.add(commonAmisVo);
+                }
             return BasicResultVO.success(result);
         } catch (Exception e) {
             log.error("OfficialAccountController#queryList fail:{}", Throwables.getStackTraceAsString(e));
@@ -112,10 +114,11 @@ public class OfficialAccountController {
     @ApiOperation("/接收微信的事件消息")
     public String receiptMessage(HttpServletRequest request) {
         try {
-            WeChatLoginConfig configService = loginUtils.getLoginConfig();
+            WeChatLoginConfig configService = loginUtils.getLoginConfig();  //从spring容器中获取微信登陆配置
             if (Objects.isNull(configService)) {
-                return RespStatusEnum.DO_NOT_NEED_LOGIN.getMsg();
+                return RespStatusEnum.DO_NOT_NEED_LOGIN.getMsg();   //如果没有登陆配置,DO_NOT_NEED_LOGIN("A0004", "非测试环境，无须登录"),
             }
+            //使用微信服务号作为登陆的凭证,测试环境下才用到
             WxMpService wxMpService = configService.getOfficialAccountLoginService();
 
             String echoStr = request.getParameter(OfficialAccountParamConstant.ECHO_STR);
@@ -129,14 +132,14 @@ public class OfficialAccountController {
             }
 
             if (!wxMpService.checkSignature(timestamp, nonce, signature)) {
-                return RespStatusEnum.CLIENT_BAD_PARAMETERS.getMsg();
+                return RespStatusEnum.CLIENT_BAD_PARAMETERS.getMsg();       //客户端参数错误
             }
-
+            //encryptType  ras  aes 两种类型
             String encryptType = StrUtil.isBlank(request.getParameter(OfficialAccountParamConstant.ENCRYPT_TYPE)) ? OfficialAccountParamConstant.RAW : request.getParameter(OfficialAccountParamConstant.ENCRYPT_TYPE);
             if (OfficialAccountParamConstant.RAW.equals(encryptType)) {
                 WxMpXmlMessage inMessage = WxMpXmlMessage.fromXml(request.getInputStream());
                 log.info("raw inMessage:{}", JSON.toJSONString(inMessage));
-                WxMpXmlOutMessage outMessage = configService.getWxMpMessageRouter().route(inMessage);
+                WxMpXmlOutMessage outMessage = configService.getWxMpMessageRouter().route(inMessage);   //路由消息
                 return outMessage.toXml();
             } else if (OfficialAccountParamConstant.AES.equals(encryptType)) {
                 String msgSignature = request.getParameter(OfficialAccountParamConstant.MSG_SIGNATURE);

@@ -42,9 +42,9 @@ public class MiniProgramController {
     public BasicResultVO queryList(Long id) {
         try {
             List<CommonAmisVo> result = new ArrayList<>();
-            WxMaSubscribeService wxMaSubscribeService = wxServiceUtils.getMiniProgramServiceMap().get(id);
-            List<TemplateInfo> templateList = wxMaSubscribeService.getTemplateList();
-            for (TemplateInfo templateInfo : templateList) {
+            WxMaSubscribeService wxMaSubscribeService = wxServiceUtils.getMiniProgramServiceMap().get(id);              //根据id从Map中获取微信的订阅服务
+            List<TemplateInfo> templateList = wxMaSubscribeService.getTemplateList();   //获取模版集合
+            for (TemplateInfo templateInfo : templateList) {    //获取每个模板信息,转换层amis支持的对象
                 CommonAmisVo commonAmisVo = CommonAmisVo.builder().label(templateInfo.getTitle()).value(templateInfo.getPriTmplId()).build();
                 result.add(commonAmisVo);
             }
@@ -89,7 +89,7 @@ public class MiniProgramController {
     @ApiOperation("登录凭证校验")
     public BasicResultVO syncOpenId(String code, String appId, String secret) {
         String url = "https://api.weixin.qq.com/sns/jscode2session?appid=" + appId + "&secret=" + secret + "&js_code=" + code + "&grant_type=authorization_code";
-        String result = HttpUtil.get(url);
+        String result = HttpUtil.get(url);      //hutool发起请求
         return BasicResultVO.success(result);
     }
 

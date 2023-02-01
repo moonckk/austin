@@ -21,10 +21,10 @@ import java.util.Objects;
 public class LoginUtils {
 
     @Autowired
-    private ApplicationContext applicationContext;
+    private ApplicationContext applicationContext;      //注入spring上下文对象
 
     @Value("${spring.profiles.active}")
-    private String env;
+    private String env;     //环境
 
     /**
      * 测试环境 使用
@@ -34,6 +34,8 @@ public class LoginUtils {
      */
     public WeChatLoginConfig getLoginConfig() {
         try {
+            //从spring容器中获取WeChatLoginConfig
+            //bean的名字是WE_CHAT_LOGIN_CONFIG = "weChatLoginConfig"
             return applicationContext.getBean(OfficialAccountParamConstant.WE_CHAT_LOGIN_CONFIG, WeChatLoginConfig.class);
         } catch (Exception e) {
             return null;
@@ -49,11 +51,11 @@ public class LoginUtils {
     public boolean needLogin() {
         try {
             WeChatLoginConfig bean = applicationContext.getBean(OfficialAccountParamConstant.WE_CHAT_LOGIN_CONFIG, WeChatLoginConfig.class);
-            if (CommonConstant.ENV_TEST.equals(env) && Objects.nonNull(bean)) {
+            if (CommonConstant.ENV_TEST.equals(env) && Objects.nonNull(bean)) {     //测试环境且微信登陆配置存在时才需要登陆
                 return true;
             }
         } catch (Exception e) {
         }
-        return false;
+        return false;   //否则不需要登陆
     }
 }

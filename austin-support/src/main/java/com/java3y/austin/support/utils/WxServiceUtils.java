@@ -39,7 +39,7 @@ public class WxServiceUtils {
     /**
      * 推送消息的小程序/微信服务号 账号
      */
-    private Map<Long, WxMpService> officialAccountServiceMap = new ConcurrentHashMap<>();
+    private Map<Long, WxMpService> officialAccountServiceMap = new ConcurrentHashMap<>();       //并发哈希
     private Map<Long, WxMaSubscribeService> miniProgramServiceMap = new ConcurrentHashMap<>();
 
     @Autowired

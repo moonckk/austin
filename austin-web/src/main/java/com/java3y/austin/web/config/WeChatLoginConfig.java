@@ -25,21 +25,21 @@ import java.util.Map;
  *
  * @author 3y
  */
-@Profile("test")
-@Configuration("weChatLoginConfig")
-@ConditionalOnProperty(name = "austin.login.official.account.enable", havingValue = "true")
+@Profile("test")        //指定test环境时才开启配置
+@Configuration("weChatLoginConfig")    //WE_CHAT_LOGIN_CONFIG = "weChatLoginConfig"
+@ConditionalOnProperty(name = "austin.login.official.account.enable", havingValue = "true")     //开启微信服务号登陆时才启动配置
 @Data
 public class WeChatLoginConfig {
 
     @Value("${austin.login.official.account.appId}")
-    private String appId;
+    private String appId;       //微信服务号的appId
     @Value("${austin.login.official.account.secret}")
-    private String secret;
+    private String secret;      //微信服务号的密钥
     @Value("${austin.login.official.account.token}")
-    private String token;
+    private String token;       //token令牌
 
     @Autowired
-    private WxServiceUtils wxServiceUtils;
+    private WxServiceUtils wxServiceUtils;      //初始化微信服务号/微信小程序 服务初始化工具类
 
     /**
      * 微信服务号 登录 相关对象
@@ -52,10 +52,11 @@ public class WeChatLoginConfig {
     private Map<String, WxMpMessageHandler> wxMpMessageHandlers;
 
 
-    @PostConstruct
+    @PostConstruct          //切面方法,构造后执行初始化
     private void init() {
+        //封装的微信服务号账号对象
         WeChatOfficialAccount account = WeChatOfficialAccount.builder().appId(appId).secret(secret).token(token).build();
-        officialAccountLoginService = wxServiceUtils.initOfficialAccountService(account);
+        officialAccountLoginService = wxServiceUtils.initOfficialAccountService(account);   //初始化微信服务号登陆对象
         initConfig();
         initRouter();
     }
@@ -75,7 +76,7 @@ public class WeChatLoginConfig {
      * 初始化配置信息
      */
     private void initConfig() {
-        config = new WxMpDefaultConfigImpl();
+        config = new WxMpDefaultConfigImpl();   //传入微信服务号登陆所需的三个参数,初始化配置信息
         config.setAppId(appId);
         config.setToken(token);
         config.setSecret(secret);
