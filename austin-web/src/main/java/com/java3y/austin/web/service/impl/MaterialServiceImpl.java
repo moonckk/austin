@@ -50,15 +50,18 @@ public class MaterialServiceImpl implements MaterialService {
     public BasicResultVO dingDingMaterialUpload(MultipartFile file, String sendAccount, String fileType) {
         OapiMediaUploadResponse rsp;
         try {
+            //从redis中获取访问token
             String accessToken = redisTemplate.opsForValue().get(SendAccountConstant.DING_DING_ACCESS_TOKEN_PREFIX + sendAccount);
             DingTalkClient client = new DefaultDingTalkClient(DING_DING_URL);
             OapiMediaUploadRequest req = new OapiMediaUploadRequest();
+            //FileItem是淘宝封装的, 文件名(uuid+原文件名)+文件流
             FileItem item = new FileItem(new StringBuilder().append(IdUtil.fastSimpleUUID()).append(file.getOriginalFilename()).toString(),
                     file.getInputStream());
-            req.setMedia(item);
-            req.setType(FileType.getNameByCode(fileType));
+            req.setMedia(item); //将文件加入请求对象
+            req.setType(FileType.getNameByCode(fileType));  //设置文件类型
             rsp = client.execute(req, accessToken);
             if (rsp.getErrcode() == 0L) {
+                //上传成功,返回上传素材的id
                 return new BasicResultVO(RespStatusEnum.SUCCESS, UploadResponseVo.builder().id(rsp.getMediaId()).build());
             }
             log.error("MaterialService#dingDingMaterialUpload fail:{}", rsp.getErrmsg());
@@ -71,12 +74,17 @@ public class MaterialServiceImpl implements MaterialService {
     @Override
     public BasicResultVO enterpriseWeChatRootMaterialUpload(MultipartFile multipartFile, String sendAccount, String fileType) {
         try {
+            //根据发送账号
             EnterpriseWeChatRobotAccount weChatRobotAccount = accountUtils.getAccountById(Integer.valueOf(sendAccount), EnterpriseWeChatRobotAccount.class);
+            //截取webhook得到key,取=之前的
             String key = weChatRobotAccount.getWebhook().substring(weChatRobotAccount.getWebhook().indexOf(CommonConstant.EQUAL_STRING) + 1);
+            //替换url中的KEY和TYPE
             String url = ENTERPRISE_WE_CHAT_ROBOT_URL.replace("<KEY>", key).replace("<TYPE>", "file");
+            //hutool发送请求
             String response = HttpRequest.post(url)
                     .form(IdUtil.fastSimpleUUID(), SpringFileUtils.getFile(multipartFile))
                     .execute().body();
+            //企业微信响应值
             EnterpriseWeChatRootResult result = JSON.parseObject(response, EnterpriseWeChatRootResult.class);
             if (result.getErrcode() == 0) {
                 return new BasicResultVO(RespStatusEnum.SUCCESS, UploadResponseVo.builder().id(result.getMediaId()).build());

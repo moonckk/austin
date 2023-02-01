@@ -27,12 +27,13 @@ public class AccountUtils {
     private ChannelAccountDao channelAccountDao;
 
 
-    public <T> T getAccountById(Integer sendAccountId, Class<T> clazz) {
+    public <T> T getAccountById(Integer sendAccountId, Class<T> clazz) {        //泛型
         try {
+            //Optional类型
             Optional<ChannelAccount> optionalChannelAccount = channelAccountDao.findById(Long.valueOf(sendAccountId));
             if (optionalChannelAccount.isPresent()) {
-                ChannelAccount channelAccount = optionalChannelAccount.get();
-                return JSON.parseObject(channelAccount.getAccountConfig(), clazz);
+                ChannelAccount channelAccount = optionalChannelAccount.get();   //获取真正的渠道账号
+                return JSON.parseObject(channelAccount.getAccountConfig(), clazz);      //从渠道账号的配置(实际渠道对象的json)中反序列化得到实际的渠道账号
             }
         } catch (Exception e) {
             log.error("AccountUtils#getAccount fail! e:{}", Throwables.getStackTraceAsString(e));

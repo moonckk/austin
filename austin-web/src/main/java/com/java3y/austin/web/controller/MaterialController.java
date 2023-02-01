@@ -42,6 +42,7 @@ public class MaterialController {
     @PostMapping("/upload")
     @ApiOperation("/素材上传接口")
     public BasicResultVO uploadMaterial(@RequestParam("file") MultipartFile file, String sendAccount, Integer sendChannel, String fileType) {
+        //todo 此处代码有优化空间,不符合开闭原则,要填加新的素材上传平台时,需要改动多处代码
         if (ChannelType.DING_DING_WORK_NOTICE.getCode().equals(sendChannel)) {
             return materialService.dingDingMaterialUpload(file, sendAccount, fileType);
         } else if (ChannelType.ENTERPRISE_WE_CHAT_ROBOT.getCode().equals(sendChannel)) {

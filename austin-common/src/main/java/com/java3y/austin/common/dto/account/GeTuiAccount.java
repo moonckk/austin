@@ -22,9 +22,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class GeTuiAccount {
 
-    private String appId;
+    private String appId;   //个推id
 
-    private String appKey;
+    private String appKey;  //开放平台注册的appId
 
-    private String masterSecret;
+    private String masterSecret;    //开放平台使用上面app所需的密钥
 }

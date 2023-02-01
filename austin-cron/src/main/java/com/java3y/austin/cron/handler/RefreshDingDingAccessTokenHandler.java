@@ -50,9 +50,10 @@ public class RefreshDingDingAccessTokenHandler {
     @XxlJob("refreshAccessTokenJob")
     public void execute() {
         log.info("refreshAccessTokenJob#execute!");
-        SupportThreadPoolConfig.getPendingSingleThreadPool().execute(() -> {
+        SupportThreadPoolConfig.getPendingSingleThreadPool().execute(() -> {    //流程和个推差不多
             List<ChannelAccount> accountList = channelAccountDao.findAllByIsDeletedEqualsAndSendChannelEquals(CommonConstant.FALSE, ChannelType.DING_DING_WORK_NOTICE.getCode());
             for (ChannelAccount channelAccount : accountList) {
+                //账号配置中反序列化钉钉的渠道账户, 钉钉使用了3个标志: agentId,appKey,appSecret, 开放平台都有这几个标志
                 DingDingWorkNoticeAccount account = JSON.parseObject(channelAccount.getAccountConfig(), DingDingWorkNoticeAccount.class);
                 String accessToken = getAccessToken(account);
                 if (StrUtil.isNotBlank(accessToken)) {
@@ -71,8 +72,8 @@ public class RefreshDingDingAccessTokenHandler {
     private String getAccessToken(DingDingWorkNoticeAccount account) {
         String accessToken = "";
         try {
-            DingTalkClient client = new DefaultDingTalkClient(URL);
-            OapiGettokenRequest req = new OapiGettokenRequest();
+            DingTalkClient client = new DefaultDingTalkClient(URL);     //钉钉通过自己的客户端发送请求,他们封装了自己的客户端请求对象和响应对象,和aws的一样
+            OapiGettokenRequest req = new OapiGettokenRequest();    //钉钉自己的获取token的请求对象
             req.setAppkey(account.getAppKey());
             req.setAppsecret(account.getAppSecret());
             req.setHttpMethod(CommonConstant.REQUEST_METHOD_GET);
