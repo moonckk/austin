@@ -22,7 +22,7 @@ import java.util.Map;
  * @author 3y
  */
 @Configuration
-public class PipelineConfig {
+public class PipelineConfig {       //
 
     @Autowired
     private PreParamCheckAction preParamCheckAction;
