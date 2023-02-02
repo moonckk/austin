@@ -62,7 +62,7 @@ public class EmailHandler extends BaseHandler implements Handler {
      * @return
      */
     private MailAccount getAccountConfig(Integer sendAccount) {
-        MailAccount account = accountUtils.getAccountById(sendAccount, MailAccount.class);
+        MailAccount account = accountUtils.getAccountById(sendAccount, MailAccount.class);      //hutool
         try {
             MailSSLSocketFactory sf = new MailSSLSocketFactory();
             sf.setTrustAllHosts(true);
