@@ -10,9 +10,9 @@ import com.java3y.austin.handler.deduplication.DeduplicationParam;
 public interface DeduplicationService {
 
     /**
-     * 去重
+     * 根据去重参数进行去重
      *
-     * @param param
+     * @param param 去重参数 JSON
      */
     void deduplication(DeduplicationParam param);
 }

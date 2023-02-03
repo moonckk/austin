@@ -17,7 +17,7 @@ import java.util.Objects;
 public class ContentDeduplicationBuilder extends AbstractDeduplicationBuilder implements Builder {
 
     public ContentDeduplicationBuilder() {
-        deduplicationType = DeduplicationType.CONTENT.getCode();
+        deduplicationType = DeduplicationType.CONTENT.getCode();    //相同内容参数去重
     }
 
     @Override
@@ -26,8 +26,8 @@ public class ContentDeduplicationBuilder extends AbstractDeduplicationBuilder im
         if (Objects.isNull(deduplicationParam)) {
             return null;
         }
+        //去重参数设置打点, 消息被内容去重（重复内容5min内多次发送）
         deduplicationParam.setAnchorState(AnchorState.CONTENT_DEDUPLICATION);
         return deduplicationParam;
-
     }
 }

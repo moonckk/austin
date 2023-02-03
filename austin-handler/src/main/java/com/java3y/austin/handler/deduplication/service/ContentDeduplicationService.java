@@ -18,10 +18,11 @@ import org.springframework.stereotype.Service;
 public class ContentDeduplicationService extends AbstractDeduplicationService {
 
 
+    //滑动窗口去重
     @Autowired
     public ContentDeduplicationService(@Qualifier("SlideWindowLimitService") LimitService limitService) {
-        this.limitService = limitService;
-        deduplicationType = DeduplicationType.CONTENT.getCode();
+        this.limitService = limitService;       //去重方式(过滤器方法)
+        deduplicationType = DeduplicationType.CONTENT.getCode();    //内容去重
     }
 
     /**

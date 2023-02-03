@@ -25,13 +25,13 @@ import java.util.Set;
 @Service(value = "SlideWindowLimitService")
 public class SlideWindowLimitService extends AbstractLimitService {
 
-    private static final String LIMIT_TAG = "SW_";
+    private static final String LIMIT_TAG = "SW_";      //该种方式的标记是SW_xxx
 
     @Autowired
-    private RedisUtils redisUtils;
+    private RedisUtils redisUtils;      //redis工具
 
 
-    private DefaultRedisScript<Long> redisScript;
+    private DefaultRedisScript<Long> redisScript;       //redis脚本
 
 
     @PostConstruct
@@ -60,7 +60,6 @@ public class SlideWindowLimitService extends AbstractLimitService {
             if (redisUtils.execLimitLua(redisScript, Collections.singletonList(key), String.valueOf(param.getDeduplicationTime() * 1000), score, String.valueOf(param.getCountNum()), scoreValue)) {
                 filterReceiver.add(receiver);
             }
-
         }
         return filterReceiver;
     }

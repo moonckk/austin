@@ -32,10 +32,13 @@ public class SimpleLimitService extends AbstractLimitService {
         // 获取redis记录
         Map<String, String> readyPutRedisReceiver = new HashMap<>(taskInfo.getReceiver().size());
         //redis数据隔离
+        //添加去重标志
         List<String> keys = deduplicationAllKey(service, taskInfo).stream().map(key -> LIMIT_TAG + key).collect(Collectors.toList());
+
         Map<String, String> inRedisValue = redisUtils.mGet(keys);
 
-        for (String receiver : taskInfo.getReceiver()) {
+        for (String receiver : taskInfo.getReceiver()) {    //过滤发送消息对象中的所有接收者,如果被限制了,则不能给他发消息
+            //
             String key = LIMIT_TAG + deduplicationSingleKey(service, taskInfo, receiver);
             String value = inRedisValue.get(key);
 

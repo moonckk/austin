@@ -18,6 +18,7 @@ import java.util.Objects;
 @Service
 public class FrequencyDeduplicationBuilder extends AbstractDeduplicationBuilder implements Builder {
     public FrequencyDeduplicationBuilder() {
+        //渠道接受消息 频次 去重
         deduplicationType = DeduplicationType.FREQUENCY.getCode();
     }
 
@@ -27,7 +28,9 @@ public class FrequencyDeduplicationBuilder extends AbstractDeduplicationBuilder 
         if (Objects.isNull(deduplicationParam)) {
             return null;
         }
+        //去重时间
         deduplicationParam.setDeduplicationTime((DateUtil.endOfDay(new Date()).getTime() - DateUtil.current()) / 1000);
+        //消息被频次去重（同一个渠道短时间内发送多次消息给用户）
         deduplicationParam.setAnchorState(AnchorState.RULE_DEDUPLICATION);
         return deduplicationParam;
     }

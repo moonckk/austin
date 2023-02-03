@@ -19,7 +19,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class DeduplicationParam {
     /**
-     * TaskIno信息
+     * TaskInfo信息
      */
     private TaskInfo taskInfo;
 
