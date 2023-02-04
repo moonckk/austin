@@ -35,9 +35,12 @@ public class DiscardMessageService {
      */
     public boolean isDiscard(TaskInfo taskInfo) {
         // 配置示例:	["1","2"]
+        // 数组中存的是要丢弃的模板id
         JSONArray array = JSON.parseArray(config.getProperty(DISCARD_MESSAGE_KEY, CommonConstant.EMPTY_VALUE_JSON_ARRAY));
 
+        //根据配置丢弃指定模版id的消息
         if (array.contains(String.valueOf(taskInfo.getMessageTemplateId()))) {
+            //丢弃消息时要打点,构建打点对象(业务id,任务接收者,打点状态:消息被丢弃（从Kafka消费后，被丢弃）)
             logUtils.print(AnchorInfo.builder().businessId(taskInfo.getBusinessId()).ids(taskInfo.getReceiver()).state(AnchorState.DISCARD.getCode()).build());
             return true;
         }

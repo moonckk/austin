@@ -36,7 +36,7 @@ public class ShieldServiceImpl implements ShieldService {
     @Override
     public void shield(TaskInfo taskInfo) {
 
-        if (ShieldType.NIGHT_NO_SHIELD.getCode().equals(taskInfo.getShieldType())) {
+        if (ShieldType.NIGHT_NO_SHIELD.getCode().equals(taskInfo.getShieldType())) {        //夜间不屏蔽
             return;
         }
 
@@ -45,16 +45,20 @@ public class ShieldServiceImpl implements ShieldService {
          * (配合 分布式任务定时任务框架搞掂)
          */
         if (isNight()) {
-            if (ShieldType.NIGHT_SHIELD.getCode().equals(taskInfo.getShieldType())) {
+            if (ShieldType.NIGHT_SHIELD.getCode().equals(taskInfo.getShieldType())) {       //夜间屏蔽
+                //夜间屏蔽打点
                 logUtils.print(AnchorInfo.builder().state(AnchorState.NIGHT_SHIELD.getCode())
                         .businessId(taskInfo.getBusinessId()).ids(taskInfo.getReceiver()).build());
             }
-            if (ShieldType.NIGHT_SHIELD_BUT_NEXT_DAY_SEND.getCode().equals(taskInfo.getShieldType())) {
+            if (ShieldType.NIGHT_SHIELD_BUT_NEXT_DAY_SEND.getCode().equals(taskInfo.getShieldType())) {     //次日9点后发送
+                //将消息序列化后缓存到redis的list(相当于队列),设置过期时间(1天后的时间(秒)-当前时间(秒))
                 redisUtils.lPush(NIGHT_SHIELD_BUT_NEXT_DAY_SEND_KEY, JSON.toJSONString(taskInfo,
                                 SerializerFeature.WriteClassName),
                         (DateUtil.offsetDay(new Date(), 1).getTime() / 1000) - DateUtil.currentSeconds());
+                //夜间屏蔽,次日发送打点
                 logUtils.print(AnchorInfo.builder().state(AnchorState.NIGHT_SHIELD_NEXT_SEND.getCode()).businessId(taskInfo.getBusinessId()).ids(taskInfo.getReceiver()).build());
             }
+            //夜间屏蔽,清空所有接收者
             taskInfo.setReceiver(new HashSet<>());
         }
     }

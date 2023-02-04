@@ -35,19 +35,19 @@ public class Task implements Runnable {
     private HandlerHolder handlerHolder;
 
     @Autowired
-    private DeduplicationRuleService deduplicationRuleService;
+    private DeduplicationRuleService deduplicationRuleService;      //消息接收者去重
 
     @Autowired
-    private DiscardMessageService discardMessageService;
+    private DiscardMessageService discardMessageService;        //丢弃消息
 
     @Autowired
-    private ShieldService shieldService;
+    private ShieldService shieldService;        //屏蔽
 
     private TaskInfo taskInfo;
 
 
     @Override
-    public void run() {
+    public void run() {     //线程执行
 
         // 0. 丢弃消息
         if (discardMessageService.isDiscard(taskInfo)) {
@@ -62,7 +62,9 @@ public class Task implements Runnable {
         }
 
         // 3. 真正发送消息
-        if (CollUtil.isNotEmpty(taskInfo.getReceiver())) {
+        if (CollUtil.isNotEmpty(taskInfo.getReceiver())) {      //如果还有接收者,则发送消息
+            //根据渠道id获取对应的handler处理器(有很多)
+            //消息处理器doHandler,执行发送消息的逻辑
             handlerHolder.route(taskInfo.getSendChannel()).doHandler(taskInfo);
         }
 

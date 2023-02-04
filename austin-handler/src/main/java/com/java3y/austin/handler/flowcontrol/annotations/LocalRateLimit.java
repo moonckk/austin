@@ -17,5 +17,5 @@ import java.lang.annotation.*;
 @Documented
 @Service
 public @interface LocalRateLimit {
-    RateLimitStrategy rateLimitStrategy() default RateLimitStrategy.REQUEST_RATE_LIMIT;
+    RateLimitStrategy rateLimitStrategy() default RateLimitStrategy.REQUEST_RATE_LIMIT;     //默认根据真实QPS限流
 }

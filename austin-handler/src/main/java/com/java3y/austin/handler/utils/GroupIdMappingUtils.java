@@ -37,8 +37,11 @@ public class GroupIdMappingUtils {
      * @return
      */
     public static String getGroupIdByTaskInfo(TaskInfo taskInfo) {
+        //通过code获取codeEn
         String channelCodeEn = ChannelType.getEnumByCode(taskInfo.getSendChannel()).getCodeEn();
+        //通过code获取msgCodeEn
         String msgCodeEn = MessageType.getEnumByCode(taskInfo.getMsgType()).getCodeEn();
+        //codeEn.msgCodeEn  是groupId
         return channelCodeEn + "." + msgCodeEn;
     }
 }

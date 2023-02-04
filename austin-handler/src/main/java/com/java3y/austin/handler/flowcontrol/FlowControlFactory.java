@@ -33,33 +33,36 @@ public class FlowControlFactory implements ApplicationContextAware {
     private static final String FLOW_CONTROL_KEY = "flowControlRule";
     private static final String FLOW_CONTROL_PREFIX = "flow_control_";
 
+    //限流枚举:流量控制服务
     private final Map<RateLimitStrategy, FlowControlService> flowControlServiceMap = new ConcurrentHashMap<>();
 
     @Autowired
-    private ConfigService config;
+    private ConfigService config;       //读配置
 
-    private ApplicationContext applicationContext;
+    private ApplicationContext applicationContext;  //上下文
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
     }
 
-    public void flowControl(TaskInfo taskInfo, FlowControlParam flowControlParam) {
-        RateLimiter rateLimiter;
-        Double rateInitValue = flowControlParam.getRateInitValue();
+    public void flowControl(TaskInfo taskInfo, FlowControlParam flowControlParam) {     //任务对象,流量控制参数
+        RateLimiter rateLimiter;        //guava流量控制
+        Double rateInitValue = flowControlParam.getRateInitValue();     //限流器初始大小
         // 对比 初始限流值 与 配置限流值，以 配置中心的限流值为准
         Double rateLimitConfig = getRateLimitConfig(taskInfo.getSendChannel());
         if (Objects.nonNull(rateLimitConfig) && !rateInitValue.equals(rateLimitConfig)) {
             rateLimiter = RateLimiter.create(rateLimitConfig);
-            flowControlParam.setRateInitValue(rateLimitConfig);
-            flowControlParam.setRateLimiter(rateLimiter);
+            flowControlParam.setRateInitValue(rateLimitConfig);     //限流参数设置限流值
+            flowControlParam.setRateLimiter(rateLimiter);           //先留参数指定限流器
         }
+        //限流参数中指定的限流策略,得到指定的限流服务
         FlowControlService flowControlService = flowControlServiceMap.get(flowControlParam.getRateLimitStrategy());
         if (Objects.isNull(flowControlService)) {
             log.error("没有找到对应的单机限流策略");
             return;
         }
+        //限流服务,进行流量控制
         double costTime = flowControlService.flowControl(taskInfo, flowControlParam);
         if (costTime > 0) {
             log.info("consumer {} flow control time {}",

@@ -17,23 +17,23 @@ import java.util.Objects;
  */
 public abstract class BaseHandler implements Handler {
     @Autowired
-    private HandlerHolder handlerHolder;
+    private HandlerHolder handlerHolder;        //holder关联channelCode和handler
     @Autowired
-    private LogUtils logUtils;
+    private LogUtils logUtils;      //打点
     @Autowired
-    private FlowControlFactory flowControlFactory;
+    private FlowControlFactory flowControlFactory;      //限流控制工厂
 
     /**
      * 标识渠道的Code
      * 子类初始化的时候指定
      */
-    protected Integer channelCode;
+    protected Integer channelCode;      //渠道id
 
     /**
      * 限流相关的参数
      * 子类初始化的时候指定
      */
-    protected FlowControlParam flowControlParam;
+    protected FlowControlParam flowControlParam;    //限流参数
 
     /**
      * 初始化渠道与Handler的映射关系
@@ -57,11 +57,13 @@ public abstract class BaseHandler implements Handler {
 
     @Override
     public void doHandler(TaskInfo taskInfo) {
-        flowControl(taskInfo);
-        if (handler(taskInfo)) {
+        flowControl(taskInfo);      //限流
+        if (handler(taskInfo)) {    //发送消息
+            //发送成功打点
             logUtils.print(AnchorInfo.builder().state(AnchorState.SEND_SUCCESS.getCode()).businessId(taskInfo.getBusinessId()).ids(taskInfo.getReceiver()).build());
             return;
         }
+        //发送失败打点
         logUtils.print(AnchorInfo.builder().state(AnchorState.SEND_FAIL.getCode()).businessId(taskInfo.getBusinessId()).ids(taskInfo.getReceiver()).build());
     }
 

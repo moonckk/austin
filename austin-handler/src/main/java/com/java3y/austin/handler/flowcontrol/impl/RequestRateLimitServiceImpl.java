@@ -25,6 +25,6 @@ public class RequestRateLimitServiceImpl implements FlowControlService {
     @Override
     public Double flowControl(TaskInfo taskInfo, FlowControlParam flowControlParam) {
         RateLimiter rateLimiter = flowControlParam.getRateLimiter();
-        return rateLimiter.acquire(1);
+        return rateLimiter.acquire(1);          //qps限流
     }
 }

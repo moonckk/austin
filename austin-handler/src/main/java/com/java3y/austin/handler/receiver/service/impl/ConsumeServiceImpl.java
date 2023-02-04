@@ -29,7 +29,7 @@ public class ConsumeServiceImpl implements ConsumeService {
     private ApplicationContext context;
 
     @Autowired
-    private TaskPendingHolder taskPendingHolder;
+    private TaskPendingHolder taskPendingHolder;        //关联消费者组和线程池
 
     @Autowired
     private LogUtils logUtils;
@@ -39,10 +39,13 @@ public class ConsumeServiceImpl implements ConsumeService {
 
     @Override
     public void consume2Send(List<TaskInfo> taskInfoLists) {
+        //获取消息队列的topicId  codeEn.msgCodeEn
         String topicGroupId = GroupIdMappingUtils.getGroupIdByTaskInfo(CollUtil.getFirst(taskInfoLists.iterator()));
-        for (TaskInfo taskInfo : taskInfoLists) {
+        for (TaskInfo taskInfo : taskInfoLists) {       //消费每个任务
+            //打点,标识日志的业务,消息接收成功
             logUtils.print(LogParam.builder().bizType(LOG_BIZ_TYPE).object(taskInfo).build(), AnchorInfo.builder().ids(taskInfo.getReceiver()).businessId(taskInfo.getBusinessId()).state(AnchorState.RECEIVE.getCode()).build());
-            Task task = context.getBean(Task.class).setTaskInfo(taskInfo);
+            Task task = context.getBean(Task.class).setTaskInfo(taskInfo);      //taskInfo传给task(任务对象,线程要执行的任务)
+            //route得到对应的线程池,线程执行执行任务
             taskPendingHolder.route(topicGroupId).execute(task);
         }
     }
