@@ -17,7 +17,7 @@ public class AustinApplication {
          * 2、将application.properties配置文件的 austin.apollo.enabled 改为true
          * 3、下方的property替换真实的ip和port
          */
-        System.setProperty("apollo.config-service", "http://192.168.33.10:8090");       //配置apollo的config-service服务的地址和端口
+        System.setProperty("apollo.config-service", "http://192.168.33.10:8080");       //配置apollo的config-service服务的地址和端口
         SpringApplication.run(AustinApplication.class, args);
     }
 }
