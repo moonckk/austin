@@ -74,7 +74,7 @@ public abstract class BaseHandler implements Handler {
      * @param taskInfo
      * @return
      */
-    public abstract boolean handler(TaskInfo taskInfo);
+    public abstract boolean handler(TaskInfo taskInfo);     //实际发送的方法由具体的消息处理器实现
 
 
 }

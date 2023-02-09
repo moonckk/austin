@@ -20,7 +20,7 @@ public interface SmsScript {
      * @param smsParam
      * @return 渠道商发送接口返回值
      */
-    List<SmsRecord> send(SmsParam smsParam);
+    List<SmsRecord> send(SmsParam smsParam);        //发送接口
 
 
     /**

@@ -17,21 +17,21 @@ public class SmsParam {
     /**
      * 业务Id
      */
-    private Long messageTemplateId;
+    private Long messageTemplateId;     //业务id
 
     /**
      * 需要发送的手机号
      */
-    private Set<String> phones;
+    private Set<String> phones;     //多个接收者
 
     /**
      * 渠道账号的脚本名标识
      */
-    private String scriptName;
+    private String scriptName;      //不同的服务商
 
 
     /**
      * 发送文案
      */
-    private String content;
+    private String content;     //短信内容
 }
