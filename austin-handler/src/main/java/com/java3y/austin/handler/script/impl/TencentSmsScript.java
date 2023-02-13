@@ -58,13 +58,13 @@ public class TencentSmsScript implements SmsScript {
     }
 
     @Override
-    public List<SmsRecord> pull(String scriptName) {
+    public List<SmsRecord> pull(String scriptName) {        //拉取回执
         try {
             TencentSmsAccount account = accountUtils.getSmsAccountByScriptName(scriptName, TencentSmsAccount.class);
-            SmsClient client = init(account);
-            PullSmsSendStatusRequest req = assemblePullReq(account);
-            PullSmsSendStatusResponse resp = client.PullSmsSendStatus(req);
-            return assemblePullSmsRecord(account, resp);
+            SmsClient client = init(account);   //请求客户端
+            PullSmsSendStatusRequest req = assemblePullReq(account);    //组装请求参数
+            PullSmsSendStatusResponse resp = client.PullSmsSendStatus(req); //拉取回执api
+            return assemblePullSmsRecord(account, resp);    //组装响应参数
         } catch (Exception e) {
             log.error("TencentSmsReceipt#pull fail!{}", Throwables.getStackTraceAsString(e));
             return null;

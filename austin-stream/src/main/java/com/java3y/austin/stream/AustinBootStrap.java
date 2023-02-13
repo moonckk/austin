@@ -40,7 +40,6 @@ public class AustinBootStrap {
          */
         dataStream.addSink(new AustinSink()).name(AustinFlinkConstant.SINK_NAME);
         env.execute(AustinFlinkConstant.JOB_NAME);
-
     }
 
 }

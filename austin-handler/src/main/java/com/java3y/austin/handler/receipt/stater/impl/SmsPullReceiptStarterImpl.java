@@ -44,12 +44,15 @@ public class SmsPullReceiptStarterImpl implements ReceiptMessageStater {
     @Override
     public void start() {
         try {
+            //获取类型为sms的所有可用的渠道账号
             List<ChannelAccount> channelAccountList = channelAccountDao.findAllByIsDeletedEqualsAndSendChannelEquals(CommonConstant.FALSE, ChannelType.SMS.getCode());
             for (ChannelAccount channelAccount : channelAccountList) {
+                //从渠道账号的配置中获取smsAccount
                 SmsAccount smsAccount = JSON.parseObject(channelAccount.getAccountConfig(), SmsAccount.class);
+                //从scriptMap中根据scriptName获取SmsScript对象,然后拉取回执
                 List<SmsRecord> smsRecordList = scriptMap.get(smsAccount.getScriptName()).pull(smsAccount.getScriptName());
                 if (CollUtil.isNotEmpty(smsRecordList)) {
-                    smsRecordDao.saveAll(smsRecordList);
+                    smsRecordDao.saveAll(smsRecordList);        //更新短信记录
                 }
             }
         } catch (Exception e) {
