@@ -14,7 +14,7 @@ services:
     links:
       - apollo-db
     environment:
-      JAVA_OPTS: '-Xms100m -Xmx1000m -Xmn100m -Xss256k -XX:MetaspaceSize=10m -XX:MaxMetaspaceSize=250m'
+      JAVA_OPTS: '-Xms100m -Xmx256m -Xmn100m -Xss256k -XX:MetaspaceSize=10m -XX:MaxMetaspaceSize=250m'
       APOLLO_CONFIG_DB_USERNAME: 'root'
       APOLLO_CONFIG_DB_PASSWORD: 'nqZbkvw!F0N+'
       APOLLO_PORTAL_DB_USERNAME: 'root'

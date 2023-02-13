@@ -51,10 +51,13 @@ public class AccountUtils {
      */
     public <T> T getSmsAccountByScriptName(String scriptName, Class<T> clazz) {
         try {
+            //找到db中所有的sms账号对象列表
             List<ChannelAccount> channelAccountList = channelAccountDao.findAllByIsDeletedEqualsAndSendChannelEquals(CommonConstant.FALSE, ChannelType.SMS.getCode());
             for (ChannelAccount channelAccount : channelAccountList) {
                 try {
+                    //先parse成父类
                     SmsAccount smsAccount = JSON.parseObject(channelAccount.getAccountConfig(), SmsAccount.class);
+                    //如果匹配的上,则再parse成具体指定的子类(scriptName)
                     if (smsAccount.getScriptName().equals(scriptName)) {
                         return JSON.parseObject(channelAccount.getAccountConfig(), clazz);
                     }

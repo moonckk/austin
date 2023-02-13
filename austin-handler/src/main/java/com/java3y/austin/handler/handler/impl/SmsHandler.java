@@ -53,7 +53,7 @@ public class SmsHandler extends BaseHandler implements Handler {
 
     @Override
     public boolean handler(TaskInfo taskInfo) {     //发送短信处理器
-        //从TaskInfo中拿到Sms参数
+        //构建smsParam,发送短信
         SmsParam smsParam = SmsParam.builder()
                 .phones(taskInfo.getReceiver())     //接收者set
                 .content(getSmsContent(taskInfo))       //获取短信内容
@@ -64,13 +64,14 @@ public class SmsHandler extends BaseHandler implements Handler {
              * 1、动态配置做流量负载
              * 2、发送短信
              */
-            List<MessageTypeSmsConfig> smsConfigs = getMessageTypeSmsConfig(taskInfo.getMsgType());//获取短信类消息的所有配置
+            List<MessageTypeSmsConfig> smsConfigs = getMessageTypeSmsConfig(taskInfo.getMsgType());     //获取指定类型短信的所有配置
             if (CollUtil.isEmpty(smsConfigs)) {
                 log.info("SmsHandler#handler smsConfigs is empty. smsConfigs:{}", smsConfigs);
             }
-            MessageTypeSmsConfig[] messageTypeSmsConfigs = loadBalance(smsConfigs);     //负载均衡,此处从配置中选择2个
+            //对这些类型的配置做负载均衡,流量负载 根据配置的权重优先走某个账号，并取出一个备份的
+            MessageTypeSmsConfig[] messageTypeSmsConfigs = loadBalance(smsConfigs);
             for (MessageTypeSmsConfig messageTypeSmsConfig : messageTypeSmsConfigs) {
-                smsParam.setScriptName(messageTypeSmsConfig.getScriptName());
+                smsParam.setScriptName(messageTypeSmsConfig.getScriptName());   //设置要发送短信的服务商
                 //调用服务商脚本发送短信,获得发送响应额列表
                 //根据脚本名获取对应的脚本对象,脚本对象发送消息
                 List<SmsRecord> recordList = smsScripts.get(messageTypeSmsConfig.getScriptName()).send(smsParam);
@@ -78,7 +79,8 @@ public class SmsHandler extends BaseHandler implements Handler {
                     smsRecordDao.saveAll(recordList);   //保存所有短信记录
                     return true;
                 }
-                //如果发送不成功,则用另外的渠道发
+                //如果发送不成功,则用另一个渠道发
+                //todo 如果两个服务商都挂了,那岂不是不能发送短信了?
             }
         } catch (Exception e) {
             log.error("SmsHandler#handler fail:{},params:{}", Throwables.getStackTraceAsString(e), JSON.toJSONString(smsParam));
@@ -135,12 +137,13 @@ public class SmsHandler extends BaseHandler implements Handler {
      * @param msgType
      * @return
      */
-    private List<MessageTypeSmsConfig> getMessageTypeSmsConfig(Integer msgType) {
+    private List<MessageTypeSmsConfig> getMessageTypeSmsConfig(Integer msgType) {       //获取指定类型的配置
         String property = config.getProperty(FLOW_KEY, CommonConstant.EMPTY_VALUE_JSON_ARRAY);
         JSONArray jsonArray = JSON.parseArray(property);
         for (int i = 0; i < jsonArray.size(); i++) {
+            //message_type_10,message_type_20,message_type_30,message_type_40
             JSONArray array = jsonArray.getJSONObject(i).getJSONArray(FLOW_KEY_PREFIX + msgType);
-            if (CollUtil.isNotEmpty(array)) {
+            if (CollUtil.isNotEmpty(array)) {       //获取对应sms类型的MessageTypeSmsConfig(weights,scriptName)集合
                 List<MessageTypeSmsConfig> result = JSON.parseArray(JSON.toJSONString(array), MessageTypeSmsConfig.class);
                 return result;
             }
