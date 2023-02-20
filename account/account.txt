@@ -1,0 +1,18 @@
+渠道账号配置
+
+邮箱(pass要使用授权码,不是邮箱的密码):
+163真实账号配置:  {"host":"smtp.163.com","port":465,"user":"austin_dev@163.com","pass":"YVHPOUIAHZBGYYGC","from":"austin开发者<austin_dev@163.com>","starttlsEnable":"false","auth":true,"sslEnable":true}
+
+短信:
+腾讯云账号样例：{"url":"sms.tencentcloudapi.com","region":"ap-guangzhou","secretId":"AKIDhDxxxxxxxx1WljQq","secretKey":"B4hwww39yxxxrrrrgxyi","smsSdkAppId":"1423123125","templateId":"1182097","signName":"Java3y公众号","supplierId":10,"supplierName":"腾讯云","scriptName":"TencentSmsScript"}
+
+云片账号配置样例：{"url":"https://sms.yunpian.com/v2/sms/tpl_batch_send.json","apikey":"caffff8234234231b5cd7","tpl_id":"523333332","supplierId":20,"supplierName":"云片","scriptName":"YunPianSmsScript"}
+
+阿里云真实账号配置:
+创建AccessKey参考:https://help.aliyun.com/document_detail/53045.html
+
+测试
+{"url":"dysmsapi.aliyuncs.com","region":"cn-hangzhou","accessKeyId":"LTAI5tCj5Mb6sSYc29QS1nuj","accessKeySecret":"uuBwCEqKoRtxlqFC0TgR1fK5w0o0br","templateCode":"SMS_154950909","signName":"阿里云短信测试","supplierId":30,"supplierName":"阿里云","scriptName":"AliyunSmsScript"}
+
+自建模板
+{"url":"dysmsapi.aliyuncs.com","region":"cn-hangzhou","accessKeyId":"LTAI5tCj5Mb6sSYc29QS1nuj","accessKeySecret":"uuBwCEqKoRtxlqFC0TgR1fK5w0o0br","templateCode":"SMS_269175551","signName":"AustinDev","supplierId":30,"supplierName":"阿里云","scriptName":"AliyunSmsScript"}
